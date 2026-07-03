@@ -988,6 +988,42 @@ strong.k{ color:var(--paper); font-weight:700; }
     if(e.key==='ArrowRight') show(currentIndex+1);
   });
 })();
+
+// auto-update: detect a newer deploy and reload without user action
+(function(){
+  try{
+    var resumeIdx = sessionStorage.getItem('resumeSlideIdx');
+    if(resumeIdx !== null){
+      sessionStorage.removeItem('resumeSlideIdx');
+      var target = document.querySelectorAll('.slide')[parseInt(resumeIdx,10)];
+      if(target) target.scrollIntoView({block:'start', behavior:'instant'});
+    }
+  }catch(e){}
+
+  var initialLM = new Date(document.lastModified).getTime();
+  var triggered = false;
+  function checkForUpdate(){
+    if(triggered) return;
+    fetch(location.pathname, { method:'HEAD', cache:'no-store' }).then(function(res){
+      var lm = res.headers.get('Last-Modified');
+      if(!lm) return;
+      if(new Date(lm).getTime() > initialLM){
+        triggered = true;
+        try{
+          var active = document.querySelector('.slide.active');
+          var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+          var idx = active ? slides.indexOf(active) : -1;
+          if(idx > -1) sessionStorage.setItem('resumeSlideIdx', String(idx));
+        }catch(e){}
+        location.reload();
+      }
+    }).catch(function(){});
+  }
+  setInterval(checkForUpdate, 60000);
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden) checkForUpdate();
+  });
+})();
 </script>
 </body>
 </html>
