@@ -1,0 +1,7 @@
+# Claude Code 本機權限設定（每台機器各自維護，不進版控）
+.claude/settings.local.json
+
+# OS 雜項
+.DS_Store
+Thumbs.db
+desktop.ini
